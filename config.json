@@ -1,0 +1,16 @@
+{
+basePrompt: `analyze the human from image attached, based on it create a professional, ultra-realistic {GENDER} character turnaround sheet, based on image attached with identical face structure and identical hairstyle, strict character face consistency. don't change any facial features and appearances, keep the face original and same person (use the reference photo, face 100% match). intentionally slightly imperfect to preserve a raw and unfiltered feel. The skin reveals hyper-realistic texture, including minor blemishes, along with natural eyebrows strands and hair strands.
+Body-type: {BODY_TYPE}
+Hairstyle: {HAIRSTYLE}
+Outfit: {OUTFIT}
+The character is presented in a clean professional concept layout on a clean studio background. The layout features four views: full-body front view, side profile view, full-body back view, and a large detailed portrait close-up of the face to neck on the far right panel. All views show a standing straight pose (no neck or head bend) with a calm and relax facial expression, and consistent character design and proportions across all panels. Add realism imperfection layer (raw detail skin texture; visible pores/skin shine/fine lines), mood.
+The photography is clean with a studio photography aesthetic on a gradient light-gray seamless background, using soft diffused studio light to highlight highly detailed skin texture, individual hair strands, and detailed fabric folds. The entire composition has a centered layout with no divided lines, no collage borders, no black bars, no text, no watermarks, and no logo branding.
+Avoid: anime, toon, cartoon, animated, 2D, 3D, CGI, paint, painting, comic, drawing, deformed, distorted, disfigured, poorly drawn, bad anatomy, wrong anatomy, extra limb, missing limb, floating limbs, mutated hands and fingers, disconnected limbs, mutation, mutated, ugly, disgusting, blurry, amputation.`,
+defaultFallbackPrompt: "use photo uploaded as the reference",
+outfitImagePromptModifier: "applied this outfit including all the accessories (not the face/head) to the character based on the first image reference.",
+watermarkText: "sonystarkAI",
+watermarkFont: "bold 24px Montserrat",
+watermarkColor: "rgba(0, 0, 0, 0.2)",
+model: "gemini-2.5-flash-image-preview",
+targetRatio: 16 / 9
+};

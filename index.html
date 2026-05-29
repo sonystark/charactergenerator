@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SONYSTARK Character Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        glass: 'rgba(255, 255, 255, 0.05)',
+                        glassBorder: 'rgba(255, 255, 255, 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,0.3) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,0.3) 0, transparent 50%);
+            background-attachment: fixed;
+            color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, 0.5);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        /* Scrollbar Hiding for Horizontal Lists */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Animated Gradient Button */
+        .btn-generating {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 3s ease infinite;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Mobile Container Constraint */
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Radio Pill Styles */
+        .radio-pill input[type="radio"] {
+            display: none;
+        }
+        .radio-pill label {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-size: 0.875rem;
+        }
+        .radio-pill input[type="radio"]:checked + label {
+            background: #4f46e5; /* Indigo 600 */
+            border-color: #6366f1;
+            color: white;
+            font-weight: 500;
+        }
+
+        /* Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        #halftone-canvas {
+            display: none; /* Used for processing, not direct display initially */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="app-container flex flex-col justify-center px-6 py-12" id="start-screen">
+        <div class="glass-panel rounded-3xl p-8 flex flex-col items-center text-center relative overflow-hidden">
+            <!-- Decorative blur blob -->
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500 rounded-full mix-blend-multiply filter blur-2xl opacity-50"></div>
+            
+            <div class="w-32 h-32 rounded-2xl overflow-hidden mb-6 shadow-lg shadow-indigo-500/30 z-10">
+                <img src="https://i.imgur.com/OCdhlPu.jpeg" alt="Dola AI x Jimeng Dreamina" class="w-full h-full object-cover">
+            </div>
+            
+            <div class="z-10 mb-2 text-center">
+                <h1 class="text-[28px] uppercase font-display tracking-[3px]">SONYSTARK</h1>
+                <div class="text-[14px] tracking-[4px] uppercase mb-2 font-medium">Character Studio</div>
+            </div>
+            <p class="text-sm text-gray-400 mb-10 z-10">Buat karakter konsisten untuk digunakan di Jimeng, Dreamina, Dola AI dan A.I. video generator lainnya yang menggunakan model Seedance 2.0</p>
+
+            <div class="w-full space-y-4 z-10">
+                <!-- Auth Status Indicator & Login -->
+                <div class="flex items-center justify-between glass-input rounded-xl p-3">
+                    <div class="flex items-center space-x-3">
+                        <div id="auth-indicator" class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] transition-colors duration-300"></div>
+                        <span class="text-sm text-gray-300" id="auth-text">Not Connected</span>
+                    </div>
+                    <button id="btn-login" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2">
+                        <i class="fa-brands fa-google"></i>
+                        <span>Connect</span>
+                    </button>
+                </div>
+
+                <!-- Start Button -->
+                <button id="btn-start" disabled class="w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 bg-gray-700 text-gray-400 cursor-not-allowed">
+                    AYO MULAI
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container hidden flex-col pb-20" id="studio-screen">
+        <!-- Header -->
+        <header class="sticky top-0 z-50 glass-panel px-6 py-4 flex items-center justify-between border-b-0 rounded-b-3xl mb-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full overflow-hidden">
+                    <img src="https://i.imgur.com/OCdhlPu.jpeg" alt="Dola AI x Jimeng Dreamina" class="w-full h-full object-cover">
+                </div>
+                <h2 class="font-display text-lg">SONYSTARK Character Studio</h2>
+            </div>
+            <button id="btn-logout" class="text-gray-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
+        </header>
+
+        <main class="px-4 space-y-6 flex-1">
+            
+            <!-- Main Image Input -->
+            <section class="space-y-2">
+                <label class="block text-xs font-semibold text-indigo-300 uppercase tracking-wider ml-1">Upload Fotomu</label>
+                <div class="relative w-full aspect-[16/9] glass-panel rounded-2xl overflow-hidden group cursor-pointer border-dashed border-2 border-white/20 hover:border-indigo-400 transition-colors" id="main-image-container">
+                    <input type="file" id="main-image-input" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+                    <div id="main-image-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 z-10 pointer-events-none">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl mb-2"></i>
+                        <span class="text-sm font-medium">Klik disini untuk pilih foto</span>
+                        <span class="text-xs opacity-50 mt-1">tip: gunakan foto wajah close-up untuk hasil maksimal</span>
+                    </div>
+                    <!-- Canvas to hold the processed image -->
+                    <canvas id="main-canvas" class="absolute inset-0 w-full h-full object-contain hidden z-10 pointer-events-none"></canvas>
+                </div>
+            </section>
+
+            <!-- Gender -->
+            <section class="space-y-2">
+                <label class="block text-xs font-semibold text-indigo-300 uppercase tracking-wider ml-1">Jenis Kelamin</label>
+                <div class="flex space-x-3">
+                    <div class="radio-pill flex-1 text-center">
+                        <input type="radio" name="gender" id="gender-male" value="♂ MALE" checked>
+                        <label for="gender-male" class="w-full"><i class="fa-solid fa-mars mr-2"></i>Cowok</label>
+                    </div>
+                    <div class="radio-pill flex-1 text-center">
+                        <input type="radio" name="gender" id="gender-female" value="♀ FEMALE">
+                        <label for="gender-female" class="w-full"><i class="fa-solid fa-venus mr-2"></i>Cewek</label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Body Type -->
+            <section class="space-y-2">
+                <label class="block text-xs font-semibold text-indigo-300 uppercase tracking-wider ml-1">Bentuk Tubuh</label>
+                <div class="flex flex-wrap gap-2 pt-1">
+                    <div class="radio-pill"><input type="radio" name="bodytype" id="bt-auto" value="" checked><label for="bt-auto">Otomatis</label></div>
+                    <div class="radio-pill"><input type="radio" name="bodytype" id="bt-skinny" value="Skinny"><label for="bt-skinny">Kurus</label></div>
+                    <div class="radio-pill"><input type="radio" name="bodytype" id="bt-petite" value="Petite"><label for="bt-petite">Mungil</label></div>
+                    <div class="radio-pill"><input type="radio" name="bodytype" id="bt-medium" value="Medium"><label for="bt-medium">Medium</label></div>
+                    <div class="radio-pill"><input type="radio" name="bodytype" id="bt-ideal" value="Ideal"><label for="bt-ideal">Ideal</label></div>
+                    <div class="radio-pill"><input type="radio" name="bodytype" id="bt-fit" value="Fit"><label for="bt-fit">Sehat</label></div>
+                    <div class="radio-pill"><input type="radio" name="bodytype" id="bt-athletic" value="Athletic"><label for="bt-athletic">Atletis</label></div>
+                    <div class="radio-pill"><input type="radio" name="bodytype" id="bt-muscular" value="Strong Built Muscular"><label for="bt-muscular">Berotot</label></div>
+                    <div class="radio-pill"><input type="radio" name="bodytype" id="bt-average" value="Average"><label for="bt-average">Standar</label></div>
+                    <div class="radio-pill"><input type="radio" name="bodytype" id="bt-fat" value="Fat/Chubby"><label for="bt-fat">Gemuk</label></div>
+                </div>
+            </section>
+
+            <!-- Hairstyle -->
+            <section class="space-y-2">
+                <label class="block text-xs font-semibold text-indigo-300 uppercase tracking-wider ml-1">Gaya Rambut</label>
+                <input type="text" id="input-hairstyle" placeholder="cth: Rambut pendek bondol warna silver..." class="w-full glass-input rounded-xl p-3 text-sm">
+            </section>
+
+            <!-- Outfit -->
+            <section class="space-y-2 glass-panel p-4 rounded-2xl relative">
+                <label class="block text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-3">Pakaian / Outfit</label>
+                
+                <input type="text" id="input-outfit-text" placeholder="cth: Baju kaos putih polos dan celana jeans..." class="w-full glass-input rounded-xl p-3 text-sm mb-3">
+                
+                <div class="flex items-center space-x-3">
+                    <div class="text-xs text-gray-400 italic flex-1">Atau masukkan foto pakaian atau outfit yang diinginkan:</div>
+                    
+                    <!-- Outfit Image Input Small -->
+                    <div class="relative w-16 h-16 bg-white/5 rounded-lg border border-white/10 flex-shrink-0 overflow-hidden group">
+                        <input type="file" id="outfit-image-input" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+                        <div id="outfit-image-placeholder" class="absolute inset-0 flex items-center justify-center text-gray-400 pointer-events-none z-10">
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+                        <canvas id="outfit-canvas" class="absolute inset-0 w-full h-full object-cover hidden z-10 pointer-events-none"></canvas>
+                        
+                        <!-- Delete Button (Hidden initially) -->
+                        <button id="btn-delete-outfit" class="absolute top-0 right-0 w-5 h-5 bg-red-500/80 text-white rounded-bl-lg hidden items-center justify-center z-30 hover:bg-red-500">
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Generate Button -->
+            <button id="btn-generate" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-lg transition-all duration-300 shadow-[0_0_20px_rgba(79,70,229,0.4)] mt-4">
+                <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Buat Sekarang
+            </button>
+
+            <!-- Output Section -->
+            <section id="output-section" class="hidden flex-col items-center mt-8 space-y-4 pt-6 border-t border-white/10">
+                <h3 class="font-display text-xl self-start w-full">Result</h3>
+                
+                <div class="relative w-full aspect-[16/9] rounded-xl overflow-hidden bg-white/5 border border-white/20">
+                    <!-- Loading State -->
+                    <div id="loading-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/80 backdrop-blur-sm z-20 hidden">
+                        <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p class="text-sm font-medium animate-pulse">Tunggu sebentar karaktermu sedang dibuat...</p>
+                    </div>
+                    
+                    <!-- Display Canvas -->
+                    <canvas id="result-canvas" class="w-full h-full object-contain"></canvas>
+                </div>
+
+                <!-- Filters & Export -->
+                <div class="w-full glass-panel p-4 rounded-xl space-y-4">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs font-semibold text-gray-300">Halftone Dot Filter</label>
+                            <span id="slider-val" class="text-xs text-indigo-300 font-mono">0.00</span>
+                        </div>
+                        <input type="range" id="filter-slider" min="0" max="100" value="0" class="w-full">
+                    </div>
+                    
+                    <button id="btn-export" class="w-full py-3 bg-white/10 hover:bg-white/20 rounded-lg font-medium text-sm transition-colors flex items-center justify-center">
+                        <i class="fa-solid fa-download mr-2"></i> Simpan Karakter
+                    </button>
+                </div>
+            </section>
+            
+        </main>
+    </div>
+
+    <!-- Hidden canvas for halftone processing -->
+    <canvas id="original-result-canvas" style="display:none;"></canvas>
+
+    <script type="module">
+        let APP_CONFIG = {};
+            async function loadConfig() {
+			const response = await fetch('config.json');
+			APP_CONFIG = await response.json();
+		}
+		await loadConfig();
+
+        // ---------------------------------------------------------
+        // Application State
+        // ---------------------------------------------------------
+        let state = {
+            isAuthenticated: false,
+            mainImageBase64: null,
+            outfitImageBase64: null,
+            rawResultImageBase64: null // Stores the image before halftone is applied
+        };
+
+        // ---------------------------------------------------------
+        // DOM Elements
+        // ---------------------------------------------------------
+        const screens = {
+            start: document.getElementById('start-screen'),
+            studio: document.getElementById('studio-screen')
+        };
+        const auth = {
+            indicator: document.getElementById('auth-indicator'),
+            text: document.getElementById('auth-text'),
+            btnLogin: document.getElementById('btn-login'),
+            btnStart: document.getElementById('btn-start'),
+            btnLogout: document.getElementById('btn-logout')
+        };
+        const inputs = {
+            mainImage: document.getElementById('main-image-input'),
+            mainCanvas: document.getElementById('main-canvas'),
+            mainPlaceholder: document.getElementById('main-image-placeholder'),
+            
+            outfitImage: document.getElementById('outfit-image-input'),
+            outfitCanvas: document.getElementById('outfit-canvas'),
+            outfitPlaceholder: document.getElementById('outfit-image-placeholder'),
+            btnDeleteOutfit: document.getElementById('btn-delete-outfit'),
+            outfitText: document.getElementById('input-outfit-text'),
+            
+            hairstyle: document.getElementById('input-hairstyle'),
+            btnGenerate: document.getElementById('btn-generate'),
+            slider: document.getElementById('filter-slider'),
+            sliderVal: document.getElementById('slider-val')
+        };
+        const outputs = {
+            section: document.getElementById('output-section'),
+            resultCanvas: document.getElementById('result-canvas'),
+            originalCanvas: document.getElementById('original-result-canvas'),
+            loadingOverlay: document.getElementById('loading-overlay'),
+            btnExport: document.getElementById('btn-export')
+        };
+
+        // ---------------------------------------------------------
+        // Authentication Flow (Simulated for API Key requirement)
+        // ---------------------------------------------------------
+        function setAuthState(isAuth) {
+            state.isAuthenticated = isAuth;
+            if (isAuth) {
+                auth.indicator.classList.remove('bg-red-500', 'shadow-[0_0_8px_rgba(239,68,68,0.8)]');
+                auth.indicator.classList.add('bg-green-500', 'shadow-[0_0_8px_rgba(34,197,94,0.8)]');
+                auth.text.textContent = "Google Connected";
+                auth.text.classList.replace('text-gray-300', 'text-green-400');
+                auth.btnLogin.innerHTML = `<i class="fa-solid fa-check"></i><span>Ready</span>`;
+                auth.btnLogin.classList.add('pointer-events-none', 'opacity-50');
+                
+                auth.btnStart.disabled = false;
+                auth.btnStart.classList.remove('bg-gray-700', 'text-gray-400', 'cursor-not-allowed');
+                auth.btnStart.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-500', 'shadow-[0_0_15px_rgba(79,70,229,0.5)]');
+            } else {
+                auth.indicator.classList.add('bg-red-500', 'shadow-[0_0_8px_rgba(239,68,68,0.8)]');
+                auth.indicator.classList.remove('bg-green-500', 'shadow-[0_0_8px_rgba(34,197,94,0.8)]');
+                auth.text.textContent = "Not Connected";
+                auth.text.classList.replace('text-green-400', 'text-gray-300');
+                auth.btnLogin.innerHTML = `<i class="fa-brands fa-google"></i><span>Connect</span>`;
+                auth.btnLogin.classList.remove('pointer-events-none', 'opacity-50');
+                
+                auth.btnStart.disabled = true;
+                auth.btnStart.classList.add('bg-gray-700', 'text-gray-400', 'cursor-not-allowed');
+                auth.btnStart.classList.remove('bg-indigo-600', 'text-white', 'hover:bg-indigo-500', 'shadow-[0_0_15px_rgba(79,70,229,0.5)]');
+            }
+        }
+
+        auth.btnLogin.addEventListener('click', () => {
+            // Simulate login delay
+            auth.btnLogin.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+            setTimeout(() => {
+                setAuthState(true);
+            }, 800);
+        });
+
+        auth.btnStart.addEventListener('click', () => {
+            if (state.isAuthenticated) {
+                screens.start.classList.add('hidden');
+                screens.studio.classList.remove('hidden');
+                screens.studio.classList.add('flex');
+            }
+        });
+
+        auth.btnLogout.addEventListener('click', () => {
+            setAuthState(false);
+            screens.studio.classList.add('hidden');
+            screens.studio.classList.remove('flex');
+            screens.start.classList.remove('hidden');
+        });
+
+        // ---------------------------------------------------------
+        // Image Processing Helpers
+        // ---------------------------------------------------------
+        function processImageFile(file, canvas, targetRatio) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Determine new dimensions to enforce aspect ratio
+                    let canvasWidth = img.width;
+                    let canvasHeight = img.width / targetRatio;
+
+                    if (img.height > canvasHeight) {
+                        canvasHeight = img.height;
+                        canvasWidth = img.height * targetRatio;
+                    }
+
+                    // For high-res UI display, limit max dimensions but maintain ratio
+                    const MAX_SIZE = 1024;
+                    if (canvasWidth > MAX_SIZE) {
+                        const scale = MAX_SIZE / canvasWidth;
+                        canvasWidth *= scale;
+                        canvasHeight *= scale;
+                    }
+
+                    canvas.width = canvasWidth;
+                    canvas.height = canvasHeight;
+
+                    // Fill white background
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+                    // Scale image to fit within canvas, centered
+                    const scale = Math.min(canvasWidth / img.width, canvasHeight / img.height);
+                    const x = (canvasWidth / 2) - (img.width / 2) * scale;
+                    const y = (canvasHeight / 2) - (img.height / 2) * scale;
+
+                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                    
+                    // Extract Base64 without data URI prefix for API
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                    const base64Data = dataUrl.split(',')[1];
+                    resolve(base64Data);
+                };
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        // ---------------------------------------------------------
+        // Input Event Listeners
+        // ---------------------------------------------------------
+        
+        // Main Image Input
+        inputs.mainImage.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            inputs.mainPlaceholder.classList.add('hidden');
+            inputs.mainCanvas.classList.remove('hidden');
+            
+            state.mainImageBase64 = await processImageFile(file, inputs.mainCanvas, APP_CONFIG.targetRatio);
+        });
+
+        // Outfit Image Input
+        inputs.outfitImage.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            inputs.outfitPlaceholder.classList.add('hidden');
+            inputs.outfitCanvas.classList.remove('hidden');
+            inputs.btnDeleteOutfit.classList.remove('hidden');
+            inputs.btnDeleteOutfit.classList.add('flex');
+            
+            // Deactivate text input
+            inputs.outfitText.disabled = true;
+            inputs.outfitText.classList.add('opacity-50', 'cursor-not-allowed');
+            inputs.outfitText.value = "Using image reference...";
+            
+            state.outfitImageBase64 = await processImageFile(file, inputs.outfitCanvas, APP_CONFIG.targetRatio);
+        });
+
+        // Delete Outfit Image
+        inputs.btnDeleteOutfit.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Prevent triggering file input underneath
+            
+            inputs.outfitImage.value = ''; // Clear file input
+            state.outfitImageBase64 = null;
+            
+            inputs.outfitPlaceholder.classList.remove('hidden');
+            inputs.outfitCanvas.classList.add('hidden');
+            inputs.btnDeleteOutfit.classList.add('hidden');
+            inputs.btnDeleteOutfit.classList.remove('flex');
+            
+            // Reactivate text input
+            inputs.outfitText.disabled = false;
+            inputs.outfitText.classList.remove('opacity-50', 'cursor-not-allowed');
+            inputs.outfitText.value = "";
+            inputs.outfitText.placeholder = "Describe outfit (leave empty to use photo)";
+        });
+
+        // Slider logic for real-time halftone update
+        inputs.slider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value) / 100;
+            inputs.sliderVal.textContent = val.toFixed(2);
+            if (state.rawResultImageBase64) {
+                applyPostProcessing();
+            }
+        });
+
+        // ---------------------------------------------------------
+        // Generate Generation Flow
+        // ---------------------------------------------------------
+        
+        // Custom message box to replace alert()
+        function showMessage(msg) {
+            const el = document.createElement('div');
+            el.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm';
+            el.textContent = msg;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+
+        function getSelectedRadioValue(name) {
+            const selected = document.querySelector(`input[name="${name}"]:checked`);
+            return selected ? selected.value : '';
+        }
+
+        inputs.btnGenerate.addEventListener('click', async () => {
+            if (!state.mainImageBase64) {
+                showMessage("Please upload a Main Reference photo first.");
+                return;
+            }
+
+            // UI Changes: Show Loading, Button Animation
+            outputs.section.classList.remove('hidden');
+            outputs.section.classList.add('flex');
+            outputs.loadingOverlay.classList.remove('hidden');
+            outputs.resultCanvas.classList.add('hidden'); // hide previous result if any
+            
+            inputs.btnGenerate.classList.add('btn-generating');
+            inputs.btnGenerate.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Sedang Membuat...`;
+
+            try {
+                // 1. Gather Inputs
+                const gender = getSelectedRadioValue('gender');
+                let bodyType = getSelectedRadioValue('bodytype');
+                let hairstyle = inputs.hairstyle.value.trim();
+                let outfitText = state.outfitImageBase64 ? "See reference image attached" : inputs.outfitText.value.trim();
+
+                // Apply fallbacks
+                if (!bodyType) bodyType = APP_CONFIG.defaultFallbackPrompt;
+                if (!hairstyle) hairstyle = APP_CONFIG.defaultFallbackPrompt;
+                if (!outfitText && !state.outfitImageBase64) outfitText = APP_CONFIG.defaultFallbackPrompt;
+
+                // 2. Construct Prompt
+                let finalPromptText = APP_CONFIG.basePrompt
+                    .replace('{GENDER}', gender)
+                    .replace('{BODY_TYPE}', bodyType)
+                    .replace('{HAIRSTYLE}', hairstyle)
+                    .replace('{OUTFIT}', outfitText);
+
+                // 3. Build API Payload
+                const payloadParts = [
+                    { text: finalPromptText },
+                    {
+                        inlineData: {
+                            mimeType: "image/jpeg",
+                            data: state.mainImageBase64
+                        }
+                    }
+                ];
+
+                // Append outfit image if provided
+                if (state.outfitImageBase64) {
+                    payloadParts.push({ text: APP_CONFIG.outfitImagePromptModifier });
+                    payloadParts.push({
+                        inlineData: {
+                            mimeType: "image/jpeg",
+                            data: state.outfitImageBase64
+                        }
+                    });
+                }
+
+                const payload = {
+                    contents: [{
+                        role: "user",
+                        parts: payloadParts
+                    }],
+                    generationConfig: {
+                        responseModalities: ['IMAGE'],
+                        imageConfig: { aspectRatio: "16:9" }
+                    }
+                };
+
+                // 4. API Call
+                const apiKey = ""; // Provided by environment runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${APP_CONFIG.model}:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Request failed with status ${response.status}`);
+                }
+
+                const result = await response.json();
+                const imagePart = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+
+                if (imagePart && imagePart.inlineData) {
+                    // Store raw result
+                    state.rawResultImageBase64 = `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
+                    
+                    // Apply filters and watermark
+                    await applyPostProcessing();
+                    
+                    outputs.resultCanvas.classList.remove('hidden');
+                } else {
+                    throw new Error("No image data found in response.");
+                }
+
+            } catch (error) {
+                console.error("Generation Error:", error);
+                showMessage("Generation failed. Please try again.");
+            } finally {
+                // Reset UI
+                outputs.loadingOverlay.classList.add('hidden');
+                inputs.btnGenerate.classList.remove('btn-generating');
+                inputs.btnGenerate.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Generate Sheet`;
+            }
+        });
+
+        // ---------------------------------------------------------
+        // Post-Processing: Halftone Filter & Watermark
+        // ---------------------------------------------------------
+        
+        async function applyPostProcessing() {
+            if (!state.rawResultImageBase64) return;
+
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = outputs.resultCanvas;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Set canvas size to image size
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+
+                    // 1. Draw Original Image
+                    ctx.drawImage(img, 0, 0);
+
+                    // 2. Apply Halftone Effect
+                    // Halftone is computationally expensive in JS. 
+                    // To simulate "baked in" feel quickly, we'll create a pattern overlay
+                    // based on the slider intensity, multiplying it over the image.
+                    const intensity = parseInt(inputs.slider.value) / 100; // 0 to 1
+                    
+                    if (intensity > 0) {
+                        // Create a small offscreen canvas for the dot pattern
+                        const patCanvas = document.createElement('canvas');
+                        // Map slider (0-1) to pattern size (e.g. 2px to 10px)
+                        const dotSize = 2 + (intensity * 8); 
+                        patCanvas.width = dotSize * 2;
+                        patCanvas.height = dotSize * 2;
+                        const patCtx = patCanvas.getContext('2d');
+                        
+                        // Background of pattern
+                        patCtx.fillStyle = 'white';
+                        patCtx.fillRect(0, 0, patCanvas.width, patCanvas.height);
+                        
+                        // Draw black dot
+                        patCtx.fillStyle = 'black';
+                        patCtx.beginPath();
+                        patCtx.arc(dotSize, dotSize, dotSize * 0.8 * intensity, 0, Math.PI * 2);
+                        patCtx.fill();
+
+                        // Create pattern and apply with multiply blend mode
+                        const pattern = ctx.createPattern(patCanvas, 'repeat');
+                        
+                        ctx.save();
+                        // Use overlay or multiply for halftone look
+                        ctx.globalCompositeOperation = 'multiply';
+                        ctx.globalAlpha = 0.4; // Soften the effect so image is still visible
+                        ctx.fillStyle = pattern;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.restore();
+                    }
+
+                    // 3. Apply Watermark
+                    ctx.save();
+                    ctx.font = APP_CONFIG.watermarkFont;
+                    ctx.fillStyle = APP_CONFIG.watermarkColor;
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'bottom';
+                    // Padding from bottom-left corner
+                    const padding = 20;
+                    ctx.fillText(APP_CONFIG.watermarkText, padding, canvas.height - padding);
+                    ctx.restore();
+
+                    resolve();
+                };
+                img.src = state.rawResultImageBase64;
+            });
+        }
+
+        // Export functionality
+        outputs.btnExport.addEventListener('click', () => {
+            if (!state.rawResultImageBase64) return;
+            
+            // Get data URL from the visible canvas which has filters baked in
+            const dataUrl = outputs.resultCanvas.toDataURL('image/jpeg', 0.95);
+            const link = document.createElement('a');
+            link.download = `character-sheet-${Date.now()}.jpg`;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+    </script>
+</body>
+</html>
