@@ -449,50 +449,51 @@ Avoid: anime, toon, cartoon, animated, 2D, 3D, CGI, paint, painting, comic, draw
         // Image Processing Helpers
         // ---------------------------------------------------------
         function processImageFile(file, canvas, targetRatio) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => {
-                    const ctx = canvas.getContext('2d');
-                    
-                    // Determine new dimensions to enforce aspect ratio
-                    let canvasWidth = img.width;
-                    let canvasHeight = img.width / targetRatio;
-
-                    if (img.height > canvasHeight) {
-                        canvasHeight = img.height;
-                        canvasWidth = img.height * targetRatio;
-                    }
-
-                    // For high-res UI display, limit max dimensions but maintain ratio
-                    const MAX_SIZE = 1024;
-                    if (canvasWidth > MAX_SIZE) {
-                        const scale = MAX_SIZE / canvasWidth;
-                        canvasWidth *= scale;
-                        canvasHeight *= scale;
-                    }
-
-                    canvas.width = canvasWidth;
-                    canvas.height = canvasHeight;
-
-                    // Fill white background
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-                    // Scale image to fit within canvas, centered
-                    const scale = Math.min(canvasWidth / img.width, canvasHeight / img.height);
-                    const x = (canvasWidth / 2) - (img.width / 2) * scale;
-                    const y = (canvasHeight / 2) - (img.height / 2) * scale;
-
-                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-                    
-                    // Extract Base64 without data URI prefix for API
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-                    const base64Data = dataUrl.split(',')[1];
-                    resolve(base64Data);
-                };
-                img.src = URL.createObjectURL(file);
-            });
-        }
+    		return new Promise((resolve) => {
+        		const reader = new FileReader();
+        		reader.onload = function(event) {
+            		const img = new Image();
+            		img.onload = () => {
+                		const ctx = canvas.getContext('2d');
+                		let canvasWidth = img.width;
+                		let canvasHeight = img.width / targetRatio;
+                		if (img.height > canvasHeight) {
+                    		canvasHeight = img.height;
+                    		canvasWidth = img.height * targetRatio;
+                		}
+                		const MAX_SIZE = 1024;
+                		if (canvasWidth > MAX_SIZE) {
+                    		const scale = MAX_SIZE / canvasWidth;
+                    		canvasWidth *= scale;
+                    		canvasHeight *= scale;
+                		}
+                		canvas.width = canvasWidth;
+                		canvas.height = canvasHeight;
+                		ctx.fillStyle = 'white';
+                		ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                		const scale = Math.min(
+                    		canvasWidth / img.width,
+                    		canvasHeight / img.height
+                		);
+                		const x = (canvasWidth / 2) - (img.width / 2) * scale;
+                		const y = (canvasHeight / 2) - (img.height / 2) * scale;
+                		ctx.drawImage(
+                    		img,
+                    		x,
+                    		y,
+                    		img.width * scale,
+                    		img.height * scale
+                		);
+                		canvas.classList.remove('hidden');
+               		 	const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                		const base64Data = dataUrl.split(',')[1];
+                		resolve(base64Data);
+            		};
+            		img.src = event.target.result;
+        		};
+        		reader.readAsDataURL(file);
+    		});
+		}
 
         // ---------------------------------------------------------
         // Input Event Listeners
